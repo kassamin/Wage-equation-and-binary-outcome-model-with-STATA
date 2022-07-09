@@ -1,0 +1,420 @@
+/*Start of Analysis*/
+cd "Y:/Assignment" 
+
+log using "log\assignment1.log", replace 
+
+
+// PFAD
+
+use hhnr persnr bdhhnr bdnetto bdpop behhnr benetto bepop bfhhnr bfnetto bfpop bghhnr bgnetto bgpop migback using "soep50/ppfad.dta", clear  //
+
+
+
+// FILTER
+
+keep if ( (bdnetto >= 10 & bdnetto < 20) & (benetto >= 10 & benetto < 20) & (bfnetto >= 10 & bfnetto < 20) & (bgnetto >= 10 & bgnetto < 20) )   //filter individuals which completed individual and hh survey and exclude children 
+
+keep if ( (bdpop == 1 | bdpop == 2) | (bepop == 1 | bepop == 2) | (bfpop == 1 | bfpop == 2) | (bgpop == 1 | bgpop == 2) )  // filter private hh which completed the survey
+
+
+
+// Save pfad with applied filter
+
+save "data/pfad.dta", replace
+
+// Create MASTER 
+
+use "data/pfad.dta", clear
+
+save "data/master.dta", replace
+
+
+
+// Select necessary variables from different datasets
+
+use bebula behhnr using "soep50/behbrutto.dta", clear
+save "data/fedstate2014.dta", replace
+
+
+use persnr bfpbirthy bfhhnr bfpsex bfp1008 bfp82 bfp10201 bfp52_isco88 bfhpmax using "soep50/bfp.dta", clear
+save "data/pers2015.dta", replace
+
+
+use persnr bdp7701 bdp13403 bdhhnr bdp66 bdp1008 bdp13401 bdp38_isco88 bdhpmax using "soep50/bdp.dta", clear
+save "data/pers2013.dta", replace
+
+
+use persnr behhnr bep5701 bep12601 bep48 bep0508 bep12603 bep28_isco88 behpmax using "soep50/bep.dta", clear
+save "data/pers2014.dta", replace
+
+
+use bdh5003 bdhhnr using "soep50/bdh.dta", clear
+save "data/hh2013.dta", replace
+
+
+use persnr bgpbirthy bgp8101 bgp0908 bgp70 bgpsex bghhnr bgp48_isco88 bghpmax using "soep50/bgp.dta", clear
+save "data/pers2016.dta", replace
+
+
+use bdhhnr bdbula using "soep50/bdhbrutto.dta", clear
+save "data/fedstate2013.dta", replace
+
+
+use persnr bebilzeit behhnr using "soep50/bepgen.dta", clear
+save "data/indi2014.dta", replace
+
+
+use persnr bdhhnr bdbilzeit using "soep50/bdpgen.dta", clear
+save "data/indi2013.dta", replace
+
+
+use bfhhnr bfh4806 using "soep50/bfh.dta", clear
+save "data/hh2015.dta", replace
+
+
+use bgh6703 bghhnr using "soep50/bgh.dta", clear
+save "data/hh2016.dta", replace
+
+
+use persnr bfbilzeit bfhhnr using "soep50/bfpgen.dta", clear
+save "data/indi2015.dta", replace
+
+
+use beh5303 behhnr using "soep50/beh.dta", clear
+save "data/hh2014.dta", replace
+
+
+use persnr bghhnr bgbilzeit using "soep50/bgpgen.dta", clear
+save "data/indi2016.dta", replace
+
+
+use bfbula bfhhnr using "soep50/bfhbrutto.dta", clear
+save "data/fedstate2015.dta", replace
+
+
+use bgbula bghhnr using "soep50/bghbrutto.dta", clear
+save "data/fedstate2016.dta", replace
+
+// merge selected datasets to the master datatset
+
+use   "data/master.dta", clear
+merge m:1 behhnr using "data/fedstate2014.dta", keep(master match) nogen
+merge 1:1 persnr using "data/pers2015.dta", keep(master match) nogen
+merge 1:1 persnr using "data/pers2013.dta", keep(master match) nogen
+merge 1:1 persnr using "data/pers2014.dta", keep(master match) nogen
+merge m:1 bdhhnr using "data/hh2013.dta", keep(master match) nogen
+merge 1:1 persnr using "data/pers2016.dta", keep(master match) nogen
+merge m:1 bdhhnr using "data/fedstate2013.dta", keep(master match) nogen
+merge 1:1 persnr using "data/indi2014.dta", keep(master match) nogen
+merge 1:1 persnr using "data/indi2013.dta", keep(master match) nogen
+merge m:1 bfhhnr using "data/hh2015.dta", keep(master match) nogen
+merge m:1 bghhnr using "data/hh2016.dta", keep(master match) nogen
+merge 1:1 persnr using "data/indi2015.dta", keep(master match) nogen
+merge m:1 behhnr using "data/hh2014.dta", keep(master match) nogen
+merge 1:1 persnr using "data/indi2016.dta", keep(master match) nogen
+merge m:1 bfhhnr using "data/fedstate2015.dta", keep(master match) nogen
+merge m:1 bghhnr using "data/fedstate2016.dta", keep(master match) nogen
+
+
+
+// Save master dataset
+
+save "data/master.dta", replace
+desc
+
+
+
+
+* * * CLEANING * * * 
+
+
+// decode missing values
+
+mvdecode _all, mv(-1=.a \ -2=.b \ -3=.c \ -4=.d \ -5=.e)
+
+
+//Rename the variables
+
+rename  bdp66 hours2013  
+rename  bep48 hours2014
+rename  bfp82 hours2015
+rename  bgp70 hours2016
+
+rename  bdp7701 inc2013
+rename  bep5701 inc2014
+rename  bfp10201 inc2015
+rename  bgp8101 inc2016
+
+rename  bdp13403 birthy2013
+rename  bep12603 birthy2014
+rename  bfpbirthy birthy2015
+rename  bgpbirthy birthy2016
+
+rename  bdp13401 gender2013
+rename  bep12601 gender2014
+rename  bfpsex gender2015
+rename  bgpsex gender2016
+
+rename  bdp1008 activity2013
+rename  bep0508 activity2014
+rename  bfp1008 activity2015
+rename  bgp0908 activity2016
+
+rename  bdbilzeit educ2013
+rename  bebilzeit educ2014
+rename  bfbilzeit educ2015
+rename  bgbilzeit educ2016
+
+rename  bdh5003 child2013
+rename  beh5303 child2014
+rename  bfh4806 child2015
+rename  bgh6703 child2016
+
+rename  bdp38_isco88 occup2013
+rename  bep28_isco88 occup2014
+rename  bfp52_isco88 occup2015
+rename  bgp48_isco88 occup2016
+
+rename  bdhpmax hhsize2013
+rename  behpmax hhsize2014
+rename  bfhpmax hhsize2015
+rename  bghpmax hhsize2016
+
+rename  bdbula fedstate2013
+rename  bebula fedstate2014
+rename  bfbula fedstate2015
+rename  bgbula fedstate2016
+
+rename  bdhhnr hhnr2013
+rename  behhnr hhnr2014
+rename  bfhhnr hhnr2015
+rename  bghhnr hhnr2016
+
+rename  bdnetto status2013
+rename  benetto status2014
+rename  bfnetto status2015
+rename  bgnetto status2016
+
+rename  bdpop priv2013
+rename  bepop priv2014
+rename  bfpop priv2015
+rename  bgpop priv2016
+
+rename hhnr initialhhnr
+
+save "data/master.dta", replace
+
+
+//  Reshape data to long format and generate year variable
+
+reshape long hours inc birthy gender activity educ occup hhsize fedstate status priv child hhnr, i(persnr) j(year)
+
+save "data/masterlong.dta", replace
+
+
+//  Compute hourly wage 
+
+gen weeklyhours = hours/10
+
+drop hours 
+
+gen monthlyhours = weeklyhours*4    
+
+gen hourlywage = inc/monthlyhours
+
+
+// Compute natural logarithm of the hourly wage 
+
+gen lnwage = log(hourlywage)
+
+
+//  Compute age and its squared 
+
+gen age = year-birthy
+
+gen age² = age^2
+
+save "data/masterlong.dta", replace
+
+
+
+// Reduce occupational variables to first digit in isco classification
+
+
+gen occupation = ""
+
+replace occupation = "[1] Managers" if occup > 1099 & occup < 2000
+
+replace occupation = "[2] Professionals" if occup > 2000 & occup < 3000
+
+replace occupation = "[3] Technicians and associate professionals" if occup > 3000 & occup < 4000
+
+replace occupation = "[4] Clerical support workers"  if occup > 4000 & occup < 5000
+
+replace occupation = "[5] Service and sales workers"  if occup > 5000 & occup < 6000
+
+replace occupation = "[6] Skilled agricultural, forestry and fishery workers"  if occup > 6000 & occup < 7000
+
+replace occupation = "[7] Craft and related trade workers"  if occup > 7000 & occup < 8000
+
+replace occupation = "[8] Plant and machine operators, and assemblers"  if occup > 8000 & occup < 9000
+
+replace occupation = "[9] Elementary occupations"  if occup > 9000 & occup < 10000
+
+replace occupation = "[0] Armed forces occupations"  if occup < 1000
+
+encode occupation , generate(occupation_n)   // generate numerical variable out of string variable
+
+recode occupation_n (. = -1)
+
+mvdecode occupation_n, mv(-1 =.f)
+
+drop occupation
+
+save "data/masterlong1.dta", replace 
+
+keep if age > 17 & age < 66  // restrict sample to individuals in working age 
+
+//Only keep useful observations 
+
+keep if hhsize > 0
+
+keep if educ > 0
+
+keep if lnwage <. & age <. & gender <. & migback <. & activity <. & educ <. & child <.  &occupation_n <. & hhsize <. & fedstate <. 
+
+// Create female dummy 
+
+gen female = 0
+replace female = 1 if gender == 2
+
+// Assign labels to variables
+
+
+label variable persnr "Personal identification number"
+label variable year "Year of observation"
+label variable status "Survey status of the respective year"
+label variable hhnr "Household number of the respecitve year"
+label variable priv "Sample membership as private household"
+label variable initialhhnr "Initial household number"
+label variable migback "Migration background"
+label variable birthy "Birth year of the individual"
+label variable gender "Sex of the individual"
+label variable activity "Physical activity on weekdays"
+label variable inc "Monthly income"
+label variable hhsize "Household size"
+label variable occup "4-Digit occupation classification (ISCO-08)"
+label variable child "Number of children"
+label variable educ "Years of education"
+label variable fedstate "Federal state"
+label variable weeklyhours "Working hours per week"
+label variable monthlyhours "Monthly working hours"
+label variable hourlywage "Gross hourly wage"
+label variable lnwage "Natural logarithm of hourly wage"
+label variable age "Age of the individual"
+label variable age² "Age squared"
+label variable occupation_n "1-Digit occupation classification (ISCO-08)"
+label variable female "Dummy equal to one if the person is female"
+
+
+save "data/masterlong1.dta", replace 
+
+// Linear model
+
+  //restrict the sample for the linear regression to gainfully employed individuals 
+  
+gen sample_i =.
+replace sample_i = 1 if weeklyhours >= 15
+label variable sample_i "Reduced sample to employed individuals"
+
+svyset _n, strata(sample_i)
+
+putdocx begin
+
+putdocx paragraph 
+putdocx text ("Table 1: Linear Regression, Dependent Variable lnwage") 
+svy: reg lnwage age age² female i.migback activity educ child hhsize i.occupation_n i.fedstate i.year
+est store i
+putdocx table occupation_n = etable, width(100%)
+
+putdocx save Linear_regression_i.docx, replace
+
+svyset, clear
+
+tab occupation_n educ
+
+// excercise ii)
+
+
+// Create binary outcome variable if person is gainfully employed 
+
+tab weeklyhours
+
+gen employed = 0
+replace employed = 1 if weeklyhours >= 15    
+
+label variable employed "Dummy equal to one if the person is gainfully employed"   	
+
+save "data/masterlong2.dta", replace
+
+
+// Restrict sample to women 
+
+gen sample_ii =.
+replace sample_ii=1 if female == 1
+label variable sample_ii "Reduced sample to women"
+
+svyset _n, strata(sample_ii)
+
+
+
+//Linear probability model
+
+putdocx begin
+
+putdocx paragraph 
+putdocx text ("Table 2: Linear Probability Model, Dependent Variable employed") 
+
+svy: reg employed age age² migback activity educ child hhsize i.fedstate i.year
+putdocx table linprobmod = etable, width(100%)
+
+putdocx save LPM_ii.docx, replace
+
+
+histogram weeklyhours, normal kdensity // Check distribution of weekly working hours 
+
+
+
+//Logit model  
+
+putdocx begin
+
+putdocx paragraph 
+putdocx text ("Results of the Logit model") 
+
+svy: logit employed age age² migback activity educ child hhsize i.fedstate i.year
+
+putdocx table binrespmod = etable, width(100%)
+putdocx save Logit_ii.docx, replace
+
+putdocx begin
+
+putdocx paragraph
+putdocx text ("Table 3: Logit Marginal Effects, Dependent Variable employed")
+
+margins, dydx(*)
+
+putdocx table marginal = etable, width(100%)
+putdocx save Margins_of_Logit_ii.docx, replace
+
+
+//Probit model, not used 
+
+svy: probit employed age age² migback activity educ child hhsize i.fedstate i.year //Not preferable due to distribution properties
+
+
+svyset, clear
+
+save "data/master1.dta", replace
+
+log close
